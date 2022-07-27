@@ -1,2 +1,0 @@
-Burrow,Date,Datetime_Measure_Start,Datetime_Measure_End,Mean_Data_Strain,Mean_Calibration_Strain,Details,Baseline_Difference,Regression_Mass
-123,2022-06-26,2022-06-26 17:18:54,2022-06-26 17:18:54,112444,112444,m,0,0.2162701929330666

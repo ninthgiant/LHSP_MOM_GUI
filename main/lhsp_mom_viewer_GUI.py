@@ -9,7 +9,7 @@
 #               have deleted all the code that was commented out in v04
 #               you can always go look at v04 to see deleted
 #           Encapsulated everything
-#       Update _v06 7/26 by RAM - clean up and convert to OOP
+#       Update _v06 7/26 by RAM - clean up and convert to OOP - Ross set this up with git
 #           1 - Make this more OOP
 #               Possible Classes for this app:
 #                  Single_Pair (of points) - selection of points, save data, export
@@ -341,7 +341,7 @@ def Get_File_Info():
     #     ('TXT',"*.txt")
     #     ])
     
-    if (True):
+    if (False):
         my_user_INPATH = "north_end_7_20.TXT"
     else:
         my_user_INPATH = input("**Enter input file:    ")
