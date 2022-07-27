@@ -1,0 +1,21 @@
+M.O.M. Results
+Burrow: 123
+Deployment date: 2022-06-26
+Number of birds recorded: 1
+
+
+
+Calibration details:
+Mean value from baseline for calibration: 148431.26315789475
+
+Category	Value_True	Value_Measured	Value_Difference
+Cal1	27.65	248452.26315789475	100021.0
+Cal2	50.0	330503.475	182072.21184210523
+Cal3	65.3	385837.8620689655	237406.59891107076
+
+Calibration regression
+R^2=0.99998, Intercept=0.21627, Slope=0.00027
+
+
+Summary details:
+gjk
