@@ -134,7 +134,16 @@ def getTracePointPair(category, markers=None, axesLimits=None):
     # Shows the trace from the globally-defined data
     pyplot.ion()
     fig, ax = pyplot.subplots()
+    # mngr = pyplot.get_current_fig_manager()
+    # to put it into the upper left corner for example:
+    # mngr.window.setGeometry(50,100,600,500) ## removed those
+    ##### control location of the window ###
+
+    #####
     fig.set_size_inches((default_figure_width, default_figure_height)) 
+    ##### add location of figure
+    #fig.canvas.manager.window.Move(100,400)
+    ##### added by RAM, July 28, 2022
     ax.plot(data.loc[:,"Measure"])
 
     if (axesLimits is not None):
@@ -332,16 +341,16 @@ def Get_File_Info():
     global user_BURROW
 
     #default for my computer - do an ASK to set default?
-    # myDir = "/Users/bobmauck/Dropbox/BIG Science/MOMs/2022_Stuff"
+    myDir = "/Users/bobmauck/Dropbox/BIG Science/MOMs/2022_Stuff"
 
-    # my_user_INPATH = filedialog.askopenfilename(initialdir = myDir, 
+    # my_user_INPATH = fd.askopenfilename(initialdir = myDir) 
     #     title = "Choose MOM File", 
     #     filetypes = [
     #     ('CSV files',"*.csv"),
     #     ('TXT',"*.txt")
     #     ])
     
-    if (False):
+    if (True):
         my_user_INPATH = "north_end_7_20.TXT"
     else:
         my_user_INPATH = input("**Enter input file:    ")
@@ -468,6 +477,9 @@ def my_Do_Calibrations(my_dataframe):
     print("Showing calibration results.\nPress 'y' to proceed or 'n' to exit.")
     fig, ax = pyplot.subplots()
     fig.canvas.mpl_connect('key_press_event', continueKey)
+    ##### add location of figure
+    # fig.canvas.manager.window.Move(100,400)
+    ##### added by RAM, July 28, 2022
     ax.plot(calibrations["Value_Difference"], calibrations["Value_True"], marker="o", color="black", linestyle="None")
     ax.plot(calibrations["Value_Difference"], calibrations["Value_Difference"]*cal_gradient+cal_intercept, color="gray", linestyle="dashed")
     pyplot.xlabel("Measured value (strain difference from baseline)")
