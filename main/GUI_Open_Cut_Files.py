@@ -62,7 +62,8 @@ def myClick():
     hello = "Cut from "+str(my_start) + " to " + str(my_end)
 
     my_Cut = upload_file("cut")
-    my_Cut.to_csv(hello + ".TXT")
+    my_Save_Dir = "~/devel/LHSP_MOM_GUI/Data_Files/"
+    my_Cut.to_csv(my_Save_Dir + hello + ".TXT")
 
     t2.insert(tk.END, hello + "\n") # add to Text widget
 
