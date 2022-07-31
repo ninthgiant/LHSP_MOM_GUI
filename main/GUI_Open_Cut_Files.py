@@ -41,7 +41,7 @@ t2.grid(row=5,column=0,padx=5, pady = 100)
 
 #### button for browsing files, but doing nothing
 b1 = tk.Button(root, text='Browse Files', 
-   width=20,command = lambda:upload_file())
+   width=20,command = lambda:upload_file("all"))
 b1.grid(row=2,column=1) 
 
 #### default values for entry boxes
@@ -62,7 +62,7 @@ def myClick():
     hello = "Cut from "+str(my_start) + " to " + str(my_end)
 
     my_Cut = upload_file("cut")
-    my_Save_Dir = "~/devel/LHSP_MOM_GUI/Data_Files/"
+    my_Save_Dir = "~/devel/LHSP_MOM_GUI/main/Data_Files/"
     my_Cut.to_csv(my_Save_Dir + hello + ".TXT")
 
     t2.insert(tk.END, hello + "\n") # add to Text widget
@@ -88,7 +88,10 @@ def upload_file(to_show):
 
     
     l1.config(text=f_name) # display the path 
-    df=pd.read_csv(f_name) # create DataFrame
+    # df=pd.read_csv(f_name) # create DataFrame
+    df = pd.read_csv(f_name, header=None, names=["Measure", "Datetime"])
+
+    #### show user info on the file chosen
     str1="Rows:" + str(df.shape[0])+ "\nColumns:"+str(df.shape[1])+"\n"  #Minutes: "# +str(df.shape[0]/10.5/60)+"\n"
     str2="Minutes: " + str((df.shape[0])/10.5/60)+"\n"
     str3="Hours: " + str((df.shape[0])/10.5/60/60)+"\n"
@@ -96,23 +99,24 @@ def upload_file(to_show):
     t1.insert(tk.END, str1) # add to Text widget
     t1.insert(tk.END, str2) # add to Text widget
     t1.insert(tk.END, str3) # add to Text widget
+    #### end of showing info to user 
 
-    df2 = pd.read_csv(f_name, header=None, names=["Measure", "Datetime"])
+    # df2 = pd.read_csv(f_name, header=None, names=["Measure", "Datetime"])
 
-    the_start = int(my_entries[0].get())
-    the_end = int(my_entries[1].get())
-    # df3 = df2.iloc[20000:20600] #20000-20600
-    df3 = df2.iloc[the_start:the_end]
+    
     
     if (to_show == "cut"):
-
-        df3.plot()
+        the_start = int(my_entries[0].get())
+        the_end = int(my_entries[1].get())
+        # df3 = df2.iloc[20000:20600] #20000-20600
+        df = df.iloc[the_start:the_end]
+        df.plot()
     else:
-        df2.plot()
+        df.plot()
 
     plt.show()
 
-    return df3
+    return df
 
 
 
