@@ -92,19 +92,28 @@ def upload_file(to_show):
     df = pd.read_csv(f_name, header=None, names=["Measure", "Datetime"])
 
     #### show user info on the file chosen
-    str1="Rows:" + str(df.shape[0])+ "\nColumns:"+str(df.shape[1])+"\n"  #Minutes: "# +str(df.shape[0]/10.5/60)+"\n"
-    str2="Minutes: " + str((df.shape[0])/10.5/60)+"\n"
-    str3="Hours: " + str((df.shape[0])/10.5/60/60)+"\n"
+    str1="\tRows:" + str(df.shape[0])+ "\t\tColumns:"+str(df.shape[1])+"\n"  #Minutes: "# +str(df.shape[0]/10.5/60)+"\n"
+    str2="\tMinutes: " + str(round((df.shape[0])/10.5/60,2))+"\t"
+    str3="(Hours: " + str(round((df.shape[0])/10.5/60/60,2))+" hours)\n"
+    str3="(" + str(round((df.shape[0])/10.5/60/60,2))+" hours)\n"
+    # str3="Hours: " + str(round(df.shape[0]/10.5/60/60,1))+"\n"
+
+    # print(df["Measure"].describe())
+    myDisplay_Mean = "\tMean Strain: " + str(round(df["Measure"].mean())) + "\n"
+    # print(df["Measure"].quantile(0.99))
+
     #print(str1)
+    displayname = f_name[len(myDir):len(f_name)] + "\n"
+    t1.insert(tk.END, displayname)
     t1.insert(tk.END, str1) # add to Text widget
     t1.insert(tk.END, str2) # add to Text widget
     t1.insert(tk.END, str3) # add to Text widget
+    t1.insert(tk.END, myDisplay_Mean) # add to Text widget
     #### end of showing info to user 
 
     # df2 = pd.read_csv(f_name, header=None, names=["Measure", "Datetime"])
 
-    
-    
+       
     if (to_show == "cut"):
         the_start = int(my_entries[0].get())
         the_end = int(my_entries[1].get())
