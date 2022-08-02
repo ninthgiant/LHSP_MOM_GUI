@@ -17,6 +17,7 @@ import statistics
 from scipy import stats 
 
 
+
 # create the root window
 root = tk.Tk()
 root.title('Work with MOM datafile')
@@ -34,10 +35,10 @@ l1.grid(row=1,column=1)
 
 ### put data under this?
 t1=tk.Text(root,width=40,height=50)
-t1.grid(row=5,column=1,padx=5, pady = 100)
+t1.grid(row=6,column=1,padx=5, pady = 100)
 
 t2=tk.Text(root,width=40,height=50)
-t2.grid(row=5,column=0,padx=5, pady = 100)
+t2.grid(row=6,column=0,padx=5, pady = 100)
 
 #### button for browsing files, but doing nothing
 b1 = tk.Button(root, text='Browse Files', 
@@ -69,6 +70,37 @@ def myClick():
 
 myButton = Button(root, text = "Cut File", command = myClick)
 myButton.grid(row = 2, column = 0, pady = 20)
+
+
+# #################
+# # Do calcultions of the bird detected - assumes df contains only that section of the file - 
+# #                                       must have cut it first to right length
+# #####
+def do_Mean_Bird_Calcs():
+    ## open a cut file
+    f_types = [
+        ('CSV files',"*.csv"),
+        ('TXT',"*.txt")
+        ]
+    f_name = fd.askopenfilename(initialdir = myDir, 
+        title = "Choose MOM File", 
+        filetypes = f_types)
+
+    
+    l1.config(text=f_name) # display the path 
+    # df=pd.read_csv(f_name) # create DataFrame
+    my_df = pd.read_csv(f_name, header=None, names=["myIndex","Measure", "Datetime"])
+    my_Threshold = 500000
+    print(my_df["Measure"].describe())
+    # my_Bird_Frame = my_df(df.Measure < my_Threshold)
+    # my_Bird_Frame.plot()
+    # to_show = "calcs"
+    
+    # plt.show()
+    print("bird mean: "+ str(my_df["Measure"].mean))
+
+b3 = Button(root, text = "Cut Calc Mean", command = do_Mean_Bird_Calcs)
+b3.grid(row = 0, column = 0, pady = 20) 
 
 
 
@@ -113,6 +145,7 @@ def upload_file(to_show):
 
     # df2 = pd.read_csv(f_name, header=None, names=["Measure", "Datetime"])
 
+  
        
     if (to_show == "cut"):
         the_start = int(my_entries[0].get())
@@ -120,8 +153,10 @@ def upload_file(to_show):
         # df3 = df2.iloc[20000:20600] #20000-20600
         df = df.iloc[the_start:the_end]
         df.plot()
-    else:
+    if (to_show == "all"):
         df.plot()
+    else:
+        df.plot() ## was setup for the calculation, but not now
 
     plt.show()
 
