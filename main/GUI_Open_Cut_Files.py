@@ -21,7 +21,7 @@ from scipy import stats
 # create the root window
 root = tk.Tk()
 root.title('Work with MOM datafile')
-root.geometry('700x1000')
+root.geometry('1000x1000')
 
 #default for my computer - do an ASK to set default?
 myDir = "/Users/bobmauck/Dropbox/BIG Science/MOMs/2022_Stuff"
@@ -40,17 +40,20 @@ t1.grid(row=6,column=1,padx=5, pady = 100)
 t2=tk.Text(root,width=40,height=50)
 t2.grid(row=6,column=0,padx=5, pady = 100)
 
+t3=tk.Text(root,width=40,height=50)
+t3.grid(row=6,column=2,padx=5, pady = 100)
+
 #### button for browsing files, but doing nothing
 b1 = tk.Button(root, text='Browse Files', 
    width=20,command = lambda:upload_file("all"))
 b1.grid(row=2,column=1) 
 
 #### default values for entry boxes
-my_entry_labels = ["Starting_Point", "End_Point"]
+my_entry_labels = ["Starting_Point", "End_Point", "Threshold"]
 #### where to store entered values
 my_entries = []
 
-for x in range(2):
+for x in range(3):
     my_entry = Entry(root)
     my_entry.grid(row = 4, column = x, pady = 20, padx = 20)
     my_entry.insert(0, "Enter_" + my_entry_labels[x])
@@ -69,7 +72,7 @@ def myClick():
     t2.insert(tk.END, hello + "\n") # add to Text widget
 
 myButton = Button(root, text = "Cut File", command = myClick)
-myButton.grid(row = 2, column = 0, pady = 20)
+myButton.grid(row = 2, column = 0) #, pady = 20)
 
 
 # #################
@@ -88,19 +91,76 @@ def do_Mean_Bird_Calcs():
 
     
     l1.config(text=f_name) # display the path 
-    # df=pd.read_csv(f_name) # create DataFrame
     my_df = pd.read_csv(f_name, header=None, names=["myIndex","Measure", "Datetime"])
-    my_Threshold = 500000
-    print(my_df["Measure"].describe())
+   #  print(my_df["Measure"].describe())
+
+    # into t3...
+    displayname = f_name[len(myDir):len(f_name)] + "\n"
+    my_Mean = round(my_df["Measure"].mean(),1)
+    str1 = "Mean: \t" + str(my_Mean)+ "\n"
+    t3.insert(tk.END, displayname + "\n")
+    t3.insert(tk.END, "\t" + str1 + "\n") # add to Text widget
+    # t3.insert(tk.END, str2) # add to Text widget
+    # t3.insert(tk.END, str3) # add to Text widget
+    
+    # print("Min: \t" + str(my_df["Measure"].min())+ "\n")
+    # print("Max: \t" + str(my_df["Measure"].max())+ "\n")
+
     # my_Bird_Frame = my_df(df.Measure < my_Threshold)
     # my_Bird_Frame.plot()
     # to_show = "calcs"
-    
+    # my_df.plot(x = "myIndex", y = "Measure")
     # plt.show()
-    print("bird mean: "+ str(my_df["Measure"].mean))
+
+    ### new
+    my_Threshold = 550000
+    my_df = my_df[ 'Measure'].to_frame()
+    # my_df['roll_mean'] = my_df['Measure'].rolling(5).mean()
+    my_df['roll_std5'] = my_df['Measure'].rolling(5).std() 
+    # my_df['roll_std10'] = my_df['Measure'].rolling(10).std()
+    my_df['roll_mean5'] = my_df['Measure'].rolling(5).mean()
+    # my_df['roll_mean10'] = my_df['Measure'].rolling(10).mean()
+    # my_df['roll_meanDiff'] = my_df['roll_mean10'] - my_df['roll_mean5']
+
+    my_df['pct_chg'] = my_df['roll_mean5'].pct_change()
+    # my_df['pct_pct_chg'] = my_df['pct_chg'].pct_change() ### this doesn't do us any good at all
+
+    print(my_df['pct_chg'].describe())
+ 
+
+    my_df['pct_chg_abs'] = my_df['pct_chg'].abs()
+
+    print(my_df['pct_chg_abs'].describe())
+
+    print(my_df['pct_chg_abs'].quantile(.9))
+
+    my_df2 = my_df['pct_chg'].to_frame()
+    my_df2['pct_chg_abs'] = my_df2['pct_chg'].abs()
+    
+
+    # my_df2 = my_df['pct_chg'].to_frame()
+
+    
+    ### make first derivative approx
+    # my_df['diff_mean5'] = 0
+    # for i in my_df['roll_mean5']
+    #     my_df['diff_mean5']
+    # ### new
+    # print("Rolling mean MEAN: ")
+    # print(str(my_df["roll_std"].mean()))
+
+    # my_df.plot("Measure")
+    my_df2.plot()
+
+    # my_df.plot(y = 'pct_chg')
+    plt.show()
+
+
+    ## now we do some calculations
+
 
 b3 = Button(root, text = "Cut Calc Mean", command = do_Mean_Bird_Calcs)
-b3.grid(row = 0, column = 0, pady = 20) 
+b3.grid(row = 2, column = 2) #, padx = 10, pady = 20) 
 
 
 
