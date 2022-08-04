@@ -15,8 +15,11 @@ import matplotlib.backend_bases as backend
 import numpy as np
 import statistics
 from scipy import stats 
+import os
 
-
+datafile_folder_path = "/Users/bobmauck/devel/LHSP_MOM_GUI/main/Data_Files/"
+datafiles = os.listdir(datafile_folder_path)
+print("Datafiles in {}: {}".format(datafile_folder_path, datafiles))
 
 # create the root window
 root = tk.Tk()
@@ -67,32 +70,57 @@ def myClick():
 
     my_Cut = upload_file("cut")
     my_Save_Dir = "~/devel/LHSP_MOM_GUI/main/Data_Files/"
-    my_Cut.to_csv(my_Save_Dir + hello + ".TXT")
+    my_Cut.to_csv(my_Save_Dir + hello + ".TXT", headers=None, index=None)
 
     t2.insert(tk.END, hello + "\n") # add to Text widget
 
+
+
+
+
+
 myButton = Button(root, text = "Cut File", command = myClick)
 myButton.grid(row = 2, column = 0) #, pady = 20)
+
+
+
+
+
+
+
+# #################
+# # deteremine eligible values use din do_Mean...
+# #####
+def in_range_finder(a, myMin, myMax, myThreshold):
+    if ((a > myMin) & (a < myMax) & (a < myThreshold)):
+        return 1
+    else:
+        return 0
 
 
 # #################
 # # Do calcultions of the bird detected - assumes df contains only that section of the file - 
 # #                                       must have cut it first to right length
 # #####
-def do_Mean_Bird_Calcs():
+def do_Mean_Bird_Calcs(multiple_files=False,f_name=None):
     ## open a cut file
     f_types = [
         ('CSV files',"*.csv"),
         ('TXT',"*.txt")
         ]
-    f_name = fd.askopenfilename(initialdir = myDir, 
-        title = "Choose MOM File", 
-        filetypes = f_types)
+
+    ## for testing (False), I just use this file:
+    if multiple_files:
+        pass
+        # f_name = f_name # fd.askopenfilename(initialdir = myDir, title = "Choose MOM File", filetypes = f_types)
+    else:
+        f_name = "/Users/bobmauck/devel/LHSP_MOM_GUI/main/Data_Files/185_One_Bird_70K_110K.TXT"
+    
 
     
     l1.config(text=f_name) # display the path 
     my_df = pd.read_csv(f_name, header=None, names=["myIndex","Measure", "Datetime"])
-   #  print(my_df["Measure"].describe())
+    print(my_df["Measure"].describe())
 
     # into t3...
     displayname = f_name[len(myDir):len(f_name)] + "\n"
@@ -113,7 +141,7 @@ def do_Mean_Bird_Calcs():
     # plt.show()
 
     ### new
-    my_Threshold = 550000
+    # my_Threshold = 550000
     my_df = my_df[ 'Measure'].to_frame()
     # my_df['roll_mean'] = my_df['Measure'].rolling(5).mean()
     my_df['roll_std5'] = my_df['Measure'].rolling(5).std() 
@@ -134,8 +162,8 @@ def do_Mean_Bird_Calcs():
 
     print(my_df['pct_chg_abs'].quantile(.9))
 
-    my_df2 = my_df['pct_chg'].to_frame()
-    my_df2['pct_chg_abs'] = my_df2['pct_chg'].abs()
+    # my_df2 = my_df['pct_chg'].to_frame()
+    my_df['pct_chg_abs'] = my_df['pct_chg'].abs()
     
 
     # my_df2 = my_df['pct_chg'].to_frame()
@@ -149,25 +177,78 @@ def do_Mean_Bird_Calcs():
     # print("Rolling mean MEAN: ")
     # print(str(my_df["roll_std"].mean()))
 
-    # my_df.plot("Measure")
-    my_df2.plot()
+    ### for fun, make a numpy array
+    my_numpy_array = my_df["pct_chg"].to_numpy()
+    nmpy_median = np.nanmedian(my_numpy_array)
+    
+    nmpy_mean = np.nanmean(my_numpy_array)
+
+    hi_point = np.nanargmax(my_numpy_array)
+    # loc_hi_point = 
+
+   # hi_point = max(my_numpy_array)
+
+    lo_point = np.nanargmin(my_numpy_array)
+    lo_value = my_df["pct_chg"].iloc[lo_point]
+    hi_value = my_df["pct_chg"].iloc[hi_point]
+
+    mom_Threshold = 0.019
+
+    print("hi point: " + str(hi_point) + "\nlo point: " + str(lo_point))
+
+    print("From numpy - mean: " + str(nmpy_mean))
+
+    # my_numpy_array.apply_along_axis(in_range_finder, 0, my_numpy_array, [a, myMin, myMax, mom_Threshold]))
+    
+    # Select between hi and lo points
+    target_df = my_df[hi_point:lo_point]
+
+    # Reduce to dataframe with only below thresh for pct chg abs
+    isWithinThreshold = target_df["pct_chg_abs"] < mom_Threshold
+    target_df = target_df[isWithinThreshold]
+    print(target_df)
+
+    bird_df = my_df.iloc[target_df.index.values]
+    print(bird_df["Measure"].describe())
+    # target_df.plot()
 
     # my_df.plot(y = 'pct_chg')
+    fig, ax = plt.subplots()
+    # Make mean line
+    ax.hlines(y=bird_df["Measure"].mean(), xmin=bird_df.index[0], xmax=bird_df.index[-1], linewidth=2, color='r')
+    # Plot the data
+    # my_df.iloc[target_df.index.values]["Measure"].plot(fig=fig)
+    my_df["Measure"].plot(fig=fig)
     plt.show()
 
-
     ## now we do some calculations
+
+
+## AUTOMATE 
+# for datafile in datafiles:
+    # print(os.path.join(datafile_folder_path,datafile))
+    # sys.exit()
+    # do_Mean_Bird_Calcs()
+    # do_Mean_Bird_Calcs(True, os.path.join(datafile_folder_path,datafile))
+    # sys.exit()
 
 
 b3 = Button(root, text = "Cut Calc Mean", command = do_Mean_Bird_Calcs)
 b3.grid(row = 2, column = 2) #, padx = 10, pady = 20) 
 
+# #################
+# # Do calcultions of the bird detected - assumes df contains only that section of the file - 
+# #                                       must have cut it first to right length
+# #####
+# def do_Mean_Bird_Calcs():
 
 
 # ### entry box ### doesn't work right now
 # e = Entry(root, width = 30)
 # # e.grid(row = 5, column = 3, padx = 5, pady = 10)
 # e.pack()
+
+
 
 def upload_file(to_show):
     f_types = [
@@ -221,6 +302,64 @@ def upload_file(to_show):
     plt.show()
 
     return df
+
+
+class Interval_Finder():
+    def __init__(self, category, start_START, start_END, my_df):
+
+        self.isGood = False
+        self.category = category
+
+        self.maybe_start = start_START  ## might be 0 if you want the whole DF
+        self.maybe_end = start_END
+
+        self.index_start = 0
+        self.index_end = 0
+
+        self.mom_df = my_df
+
+        self.rolling_window = 5  ## could pass this as a parameter
+
+        # self.ax = pyplot.gca()
+        # self.lines=self.ax.lines
+        # self.lines=self.lines[:]
+
+        # self.tx = [self.ax.text(0,0,"") for l in self.lines]
+        # self.marker = [self.ax.plot([startX],[startY], marker="o", color="red")[0]]
+
+        self.currX = 0
+        self.currY = 0
+
+    def prep_df(self, type):
+        self.mom_df['roll_mean5'] = self.mom_df['Measure'].rolling(self.rolling_window).mean()
+
+        if(type == 'pct_chg'):
+            self.mom_df['pct_chg'] = self.mom_df['roll_mean5'].pct_change()
+            self.mom_df['pct_chg_abs'] = self.mom_df['pct_chg'].abs()
+
+        if(type == 'std'):
+            self.mom_df['roll_std'] = self.mom_df['Measure'].rolling(self.rolling_window).std() 
+
+            
+    def find_first_increase(self):  # assumes you have first done prep_df
+        pass
+        for i in self.mom_df:
+            pass
+
+
+
+    def find_last_decrease(self):
+        pass
+    
+    def find_start(self):
+        pass
+    
+    def find_end(self):
+        pass
+
+
+
+
 
 
 
