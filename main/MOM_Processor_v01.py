@@ -206,7 +206,32 @@ def do_PctChg_Bird_Calcs(my_df,f_name, my_window, my_threshold):
     # get baseline from the same window, surounding the bird span
     bird_baseline_mean, bird_plot_df = mom_get_baseline(my_df, lo_point, hi_point)
     
+    if(False):
+        # Now make a plot of the whole thing wtih a line over the points we will use to calculate the bird
+        fig, ax = plt.subplots()
+        # Make mean line
+        ax.hlines(y=bird_df["Measure"].mean(), xmin=bird_df.index[0], xmax=bird_df.index[-1], linewidth=2, color='r')
+        # Plot the data
+        # my_df["Measure"].plot(fig=fig)
+        bird_plot_df["Measure"].plot(fig=fig)
+        # save the plot
+        output_filename = "185" + "_thresh_" + str(my_window) + "  win_" + str(my_threshold) + ".png"
+        plt.savefig(output_filename)
+        # show the plot
+        # plot_text = str(bird_mean) # + str(bird_baseline_mean)
+        plt.text(7.8, 12.5, "I am Adding Text To The Plot")
+        plt.show()
+
+        if(False):  ## only if we also want to see the pct change onscren
+            ### now show pct change to make baseline
+            bird_plot_df['pct_chg_abs'].plot(fig=fig)
+            plt.show()
+    else:
+        mom_do_birdplot (bird_df, bird_plot_df, display_string):
     
+    return bird_mean, bird_baseline_mean
+
+def mom_do_birdplot (bird_df, bird_plot_df, my_filename):
     # Now make a plot of the whole thing wtih a line over the points we will use to calculate the bird
     fig, ax = plt.subplots()
     # Make mean line
@@ -221,13 +246,6 @@ def do_PctChg_Bird_Calcs(my_df,f_name, my_window, my_threshold):
     # plot_text = str(bird_mean) # + str(bird_baseline_mean)
     plt.text(7.8, 12.5, "I am Adding Text To The Plot")
     plt.show()
-
-    if(False):  ## only if we also want to see the pct change onscren
-        ### now show pct change to make baseline
-        bird_plot_df['pct_chg_abs'].plot(fig=fig)
-        plt.show()
-    
-    return bird_mean, bird_baseline_mean
 
 def mom_get_baseline(my_df, lo_point, hi_point):
         # can be used any file as long as you adjust for how much room we can us
