@@ -40,8 +40,10 @@ root = tk.Tk()
 root.title('Work with MOM datafile')
 root.geometry('1200x1000')
 
-#default for my computer - do an ASK to set default?
-myDir = "/Users/bobmauck/Dropbox/BIG Science/MOMs/2022_Stuff"
+#defaults for my computer - do an ASK to set defaults?
+myDir = "/Users/bobmauck/Dropbox/BIG Science/MOMs/2022_Stuff" # where to open window for GUI file selection
+default_window = 5
+my_Save_Dir = "~/devel/LHSP_MOM_GUI/main/Data_Files/"  # where to put cut files
 
 ########
 # put labels and buttons on the window
@@ -62,24 +64,34 @@ t3.grid(row=6,column=2,padx=5, pady = 100)
 
 
 #### default values for entry boxes labels
-my_entry_labels = ["Starting_Point", "End_Point", "0.015", "5"]
+my_entry_labels = ["Starting_Point", "End_Point", "0.015", str(default_window)]
+my_entry_labels_02 = ["Burrow", "Not Used", "Not Used", 'Not Used']
 #### where to store entered values
 my_entries = []
+my_entries2 = []
 for x in range(4):
     my_entry = Entry(root)
     my_entry.grid(row = 4, column = x, pady = 20, padx = 20)
     my_entry.insert(0, my_entry_labels[x])
     my_entries.append(my_entry)
+## make one more row with one more entry
+for x in range(4):
+    my_entry2 = Entry(root)
+    my_entry2.grid(row = 5, column = x, pady = 20, padx = 20)
+    my_entry2.insert(0, my_entry_labels_02[x])
+    my_entries2.append(my_entry2)
 
 def mom_cut_button():
     my_start = my_entries[0].get()
     my_end = my_entries[1].get()
+    my_label = my_entries2[0].get()
 
-    hello = "Cut from "+str(my_start) + " to " + str(my_end)
 
-    my_Cut = mom_open_file_dialog("cut")
-    my_Save_Dir = "~/devel/LHSP_MOM_GUI/main/Data_Files/"
-    my_Cut.to_csv(my_Save_Dir + hello + ".TXT", headers=None, index=None)
+    hello = "Cut "+str(my_start) + " to " + str(my_end)
+
+    my_fname, my_Cut = mom_open_file_dialog("cut")
+    
+    my_Cut.to_csv(my_Save_Dir + my_label + "_" + hello + ".TXT")
 
     t2.insert(tk.END, hello + "\n") # add to Text widget
 
@@ -99,13 +111,11 @@ def mom_calc_button(multiple_files):
             # do_Mean_Bird_Calcs(True, os.path.join(datafile_folder_path,datafile))
             # sys.exit()
     else:
-        if(False):  ## for testing (False), I just use this file:
-            f_name = "/Users/bobmauck/devel/LHSP_MOM_GUI/main/Data_Files/185_One_Bird_70K_110K.TXT"
-        else:
-            bird_fname, bird_df = mom_open_file_dialog("not")  ## get a file to work with, then send it here...
-
-            bird_mean, bird_baseline = do_PctChg_Bird_Calcs(bird_df, bird_fname, my_rolling_window, my_inclusion_threshold)  ## last number is the points in the rolling windows
-            #update the column wiht this
+            ## get a file to work with, then send it here...
+        bird_fname, bird_df = mom_open_file_dialog("not", False)  
+            ## do the calculations
+        bird_mean, bird_baseline = do_PctChg_Bird_Calcs(bird_df, bird_fname, my_rolling_window, my_inclusion_threshold)  ## last number is the points in the rolling windows
+            #update the column wiht this calc info
         t3.insert(tk.END, "\tBird (" + str(my_rolling_window) + ", "+ str(my_inclusion_threshold)+ "): " + str(round(bird_mean,1)) + "\n")
         t3.insert(tk.END, "\tBird baseline: " + str(round(bird_baseline,1)) + "\n")
         t3.insert(tk.END, "\tStrain Change: " + str(round((bird_mean - bird_baseline),1)) + "\n")
@@ -132,9 +142,9 @@ def mom_format_dataframe(mydf):
     return mydf
 
 
-def mom_open_file_dialog(to_show):
+def mom_open_file_dialog(to_show, my_testing = False):
     f_types = [('CSV files',"*.csv"), ('TXT',"*.txt") ]
-    if(False):  # make false for testing
+    if(not(my_testing)):  # make false for testing
         f_name = filedialog.askopenfilename(initialdir = myDir,  title = "Choose MOM File", filetypes = f_types)
     else:
         f_name = "/Users/bobmauck/devel/LHSP_MOM_GUI/main/Data_Files/185_One_Bird_70K_110K.TXT"
@@ -175,25 +185,29 @@ def mom_get_file_info(my_df):
     return(str1 + str2 + str3 + str4)
 
 # #################
-#   do_PctChg_Bird_Calcs(my_df,f_name, my_window, my_threshold)
+#   do_PctChg_Bird_Calcs(my_df,f_name, my_window, my_threshold, my_update_screen)
 #           Do calcultions of the bird detected - assumes df contains only that section of the file with bird, no other data 
 #                                        must have cut it first to right length
+#           my_update_screen shoudl be false if we are doing multiple birds in one batch
 # #####
-def do_PctChg_Bird_Calcs(my_df,f_name, my_window, my_threshold):
+def do_PctChg_Bird_Calcs(my_df,f_name, my_window, my_threshold, my_update_screen=True):
 
         ## threshold to use for inclusion or exclusion from consideration between points
     mom_Threshold = my_threshold
  
-    # update the onscreen info into l1 and t3...
-    l1.config(text=f_name) # display the path 
-    display_string = mom_get_file_info(my_df)
-    display_string = f_name[len(myDir):len(f_name)] + "\n" + display_string
-    t3.insert(tk.END, display_string)
+    if(my_update_screen):
+        # update the onscreen info into l1 and t3...
+        l1.config(text=f_name) # display the path 
+        display_string = mom_get_file_info(my_df)
+        display_string = f_name[len(myDir):len(f_name)] + "\n" + display_string
+        t3.insert(tk.END, display_string)
+
 
     lo_point, hi_point, my_df = mom_find_target_values(my_df, my_window)
 
-    ### this is where we select the exact points to measure for the bird 
-    # Select between hi and lo points
+    ####################
+    # START of the treatment specific to the type of analysis this is (pct_chg~1st derivative)
+    ########
     target_df = my_df[hi_point:lo_point]
 
     # Reduce to dataframe with only below thresh for pct chg abs
@@ -202,36 +216,20 @@ def do_PctChg_Bird_Calcs(my_df,f_name, my_window, my_threshold):
     # going back to the original df to get the values
     bird_df = my_df.iloc[target_df.index.values]
     bird_mean = bird_df["Measure"].mean()
+    ####################
+    # END of the treatment specific to the type of analysis this is (pct_chg~1st derivative)
+    ########
  
     # get baseline from the same window, surounding the bird span
     bird_baseline_mean, bird_plot_df = mom_get_baseline(my_df, lo_point, hi_point)
     
-    if(False):
-        # Now make a plot of the whole thing wtih a line over the points we will use to calculate the bird
-        fig, ax = plt.subplots()
-        # Make mean line
-        ax.hlines(y=bird_df["Measure"].mean(), xmin=bird_df.index[0], xmax=bird_df.index[-1], linewidth=2, color='r')
-        # Plot the data
-        # my_df["Measure"].plot(fig=fig)
-        bird_plot_df["Measure"].plot(fig=fig)
-        # save the plot
-        output_filename = "185" + "_thresh_" + str(my_window) + "  win_" + str(my_threshold) + ".png"
-        plt.savefig(output_filename)
-        # show the plot
-        # plot_text = str(bird_mean) # + str(bird_baseline_mean)
-        plt.text(7.8, 12.5, "I am Adding Text To The Plot")
-        plt.show()
-
-        if(False):  ## only if we also want to see the pct change onscren
-            ### now show pct change to make baseline
-            bird_plot_df['pct_chg_abs'].plot(fig=fig)
-            plt.show()
-    else:
-        mom_do_birdplot (bird_df, bird_plot_df, display_string):
+    # now show focused plot and export that plot with info for later viewing
+    mom_do_birdplot(bird_df, bird_plot_df, display_string, my_window, my_threshold, "pctChg")
     
     return bird_mean, bird_baseline_mean
 
-def mom_do_birdplot (bird_df, bird_plot_df, my_filename):
+def mom_do_birdplot (bird_df, bird_plot_df, my_filename, my_window, my_threshold, my_type):
+    ##### need to improve - send to specific folder for these plots
     # Now make a plot of the whole thing wtih a line over the points we will use to calculate the bird
     fig, ax = plt.subplots()
     # Make mean line
@@ -239,8 +237,8 @@ def mom_do_birdplot (bird_df, bird_plot_df, my_filename):
     # Plot the data
     # my_df["Measure"].plot(fig=fig)
     bird_plot_df["Measure"].plot(fig=fig)
-    # save the plot
-    output_filename = "185" + "_thresh_" + str(my_window) + "  win_" + str(my_threshold) + ".png"
+    # save the plot, name assumes your original files starts wtih 3-letter burrow number
+    output_filename = my_filename[0:3] + "_" + my_type + "_" + str(my_window) + "  win_" + str(my_threshold) + "_thr.png"
     plt.savefig(output_filename)
     # show the plot
     # plot_text = str(bird_mean) # + str(bird_baseline_mean)
@@ -251,7 +249,13 @@ def mom_get_baseline(my_df, lo_point, hi_point):
         # can be used any file as long as you adjust for how much room we can us
         ### now zoom into the focal area to show the plot and calculate the baseline mean
         # parameters for this. Should they be passed?
-    my_padding = 100
+    total_len = my_df.shape[0]
+
+    if(total_len > 300):
+        my_padding = 100
+    else:
+        my_padding = 50
+
     baseline_max = 0.00002
         # get subset of data from my_df
     bird_plot_df = my_df[(hi_point - my_padding):(lo_point + my_padding)]
@@ -269,9 +273,9 @@ def mom_find_target_values(my_df, my_window):
         # uses pct change from a rolling window to decide what to include 
     
     my_df = my_df[ 'Measure'].to_frame()
-    my_df['roll_std5'] = my_df['Measure'].rolling(my_window).std() 
-    my_df['roll_mean5'] = my_df['Measure'].rolling(my_window).mean()
-    my_df['pct_chg'] = my_df['roll_mean5'].pct_change()
+    my_df['roll_std'] = my_df['Measure'].rolling(my_window, center = True).std() 
+    my_df['roll_mean'] = my_df['Measure'].rolling(my_window, center = True).mean()
+    my_df['pct_chg'] = my_df['roll_mean'].pct_change()
     my_df['pct_chg_abs'] = my_df['pct_chg'].abs()
     
     ### make a numpy array so that we can do quick math
