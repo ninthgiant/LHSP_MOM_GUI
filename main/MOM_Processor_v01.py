@@ -126,11 +126,26 @@ def mom_calc_button(multiple_files):
             ## get a file to work with, then send it here...
         bird_fname, bird_df = mom_open_file_dialog("not", False)  
             ## do the calculations
-        bird_mean, bird_baseline = do_PctChg_Bird_Calcs(bird_df, bird_fname, my_rolling_window, my_inclusion_threshold)  ## last number is the points in the rolling windows
+        bird_mean, bird_baseline, n_points = do_PctChg_Bird_Calcs(bird_df, bird_fname, my_rolling_window, my_inclusion_threshold)  ## last number is the points in the rolling windows
             #update the column wiht this calc info
         t3.insert(tk.END, "\tBird (" + str(my_rolling_window) + ", "+ str(my_inclusion_threshold)+ "): " + str(round(bird_mean,1)) + "\n")
         t3.insert(tk.END, "\tBird baseline: " + str(round(bird_baseline,1)) + "\n")
-        t3.insert(tk.END, "\tStrain Change: " + str(round((bird_mean - bird_baseline),1)) + "\n")
+        t3.insert(tk.END, "\tStrain Change: " + str(round((bird_mean - bird_baseline),1)) + "\t(N = " +str(n_points) + ")\n")
+
+def mom_calc_multiple_files():
+    pass  
+    my_Windows = [3, 5, 7]
+    my_Thresholds = [0.01, 0.0125, 0.015, 0.0175, 0.02]
+        ## could cycle through files and rolling windows and thresholds
+        #       datafiles are located in: "/Users/bobmauck/devel/LHSP_MOM_GUI/main/Data_Files/Cut_Bird_Only"
+        ## AUTOMATE 
+        # for datafile in datafiles:
+        #   for windows in my_rolling_windows size by increment (i.e. 3-9 by 2, maybe a list with these values):
+        #       for threhold in my_inclusion_thresholds by increment (i.e., 0.1, 0.15, 0.20, maybe a list with these values):
+        #           get bird_df, bird_name from each datafile, send it to doPctChg
+        #           bird_mean, bird_baseline, n_points = do_PctChg_Bird_Calcs(bird_df, bird_fname, my_rolling_window, my_inclusion_threshold)
+        #           ADD to dataframe: bird_mean, bird_baseline, n_points, rolling_window, my_threshold, type_of_calc (e.g., "Pct_Chg")
+        # when done, export dataframe holding all the data from each iteration
 
 
 #### buttons for browsing files, cutting files, or doing calculations
@@ -142,6 +157,9 @@ b2.grid(row = 2, column = 0)
 
 b3 = Button(root, text = "Cut Calc Mean", command = lambda:mom_calc_button(False))
 b3.grid(row = 2, column = 2) #, padx = 10, pady = 20) 
+
+b4 = Button(root, text = "Multi Files", command = lambda:mom_calc_multiple_files())
+b4.grid(row = 2, column = 3) #, padx = 10, pady = 20)
 
 
 def mom_format_dataframe(mydf):
@@ -225,6 +243,8 @@ def do_PctChg_Bird_Calcs(my_df,f_name, my_window, my_threshold, my_update_screen
     # Reduce to dataframe with only below thresh for pct chg abs
     isWithinThreshold = target_df["pct_chg_abs"] < mom_Threshold
     target_df = target_df[isWithinThreshold]
+    # how many points are we using?
+    n_points = target_df.shape[0]
     # going back to the original df to get the values
     bird_df = my_df.iloc[target_df.index.values]
     bird_mean = bird_df["Measure"].mean()
@@ -240,7 +260,7 @@ def do_PctChg_Bird_Calcs(my_df,f_name, my_window, my_threshold, my_update_screen
 
     mom_do_birdplot(bird_df, bird_plot_df, display_string, my_window, my_threshold, "pctChg")
     
-    return bird_mean, bird_baseline_mean
+    return bird_mean, bird_baseline_mean, n_points
 
 def mom_do_birdplot (bird_df, bird_plot_df, my_filename, my_window, my_threshold, my_type):
     ##### need to improve - send to specific folder for these plots
@@ -317,6 +337,8 @@ def mom_get_file_info(my_df):
     str4 = "\tMean Strain: " + str(round(my_df["Measure"].mean())) + "\n"
 
     return(str1 + str2 + str3 + str4)
+
+
 
 
 
