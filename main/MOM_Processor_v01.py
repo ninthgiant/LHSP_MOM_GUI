@@ -11,6 +11,9 @@
 #   other calculation algorithms
 #       calculation based on distance from midpoint
 #   Batch process multiple files in one folder (Birds only)
+#   Export range of values to CSV from one or batch of files
+#       return those values as result of main function for now
+#   Build class which has all this plus, known value, regression coeffs, export data
 #################################
 
 ########
