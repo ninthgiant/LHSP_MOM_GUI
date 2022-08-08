@@ -5,6 +5,15 @@
 ###########
 
 ########
+# To do list:
+#   plot known value on the figure
+#   calculation based on average of the rolling average to lesson effect of edges
+#   other calculation algorithms
+#       calculation based on distance from midpoint
+#   Batch process multiple files in one folder (Birds only)
+#################################
+
+########
 # import libraries, etc.
 #################################
 
@@ -31,7 +40,7 @@ import os
 ###
 
 ##### if we want to automate processing of multiple files, use this
-datafile_folder_path = "/Users/bobmauck/devel/LHSP_MOM_GUI/main/Data_Files/"
+datafile_folder_path = "/Users/bobmauck/devel/LHSP_MOM_GUI/main/Data_Files/Cut_Bird_Only"
 datafiles = os.listdir(datafile_folder_path)
 # print("Datafiles in {}: {}".format(datafile_folder_path, datafiles))
 
@@ -224,6 +233,8 @@ def do_PctChg_Bird_Calcs(my_df,f_name, my_window, my_threshold, my_update_screen
     bird_baseline_mean, bird_plot_df = mom_get_baseline(my_df, lo_point, hi_point)
     
     # now show focused plot and export that plot with info for later viewing
+    # get the burrow number
+
     mom_do_birdplot(bird_df, bird_plot_df, display_string, my_window, my_threshold, "pctChg")
     
     return bird_mean, bird_baseline_mean
@@ -238,12 +249,14 @@ def mom_do_birdplot (bird_df, bird_plot_df, my_filename, my_window, my_threshold
     # my_df["Measure"].plot(fig=fig)
     bird_plot_df["Measure"].plot(fig=fig)
     # save the plot, name assumes your original files starts wtih 3-letter burrow number
-    output_filename = my_filename[0:3] + "_" + my_type + "_" + str(my_window) + "  win_" + str(my_threshold) + "_thr.png"
+    my_label = my_entries2[0].get()
+    output_filename = my_label + "_" + my_type + "_" + str(my_window) + "  win_" + str(my_threshold) + "_thr.png"
     plt.savefig(output_filename)
     # show the plot
     # plot_text = str(bird_mean) # + str(bird_baseline_mean)
     plt.text(7.8, 12.5, "I am Adding Text To The Plot")
     plt.show()
+
 
 def mom_get_baseline(my_df, lo_point, hi_point):
         # can be used any file as long as you adjust for how much room we can us
