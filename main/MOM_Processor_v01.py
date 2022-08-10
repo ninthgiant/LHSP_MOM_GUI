@@ -53,7 +53,8 @@ root.title('Work with MOM datafile')
 root.geometry('1200x1000')
 
 #defaults for my computer - do an ASK to set defaults?
-myDir = "/Users/bobmauck/Dropbox/BIG Science/MOMs/2022_Stuff" # where to open window for GUI file selection
+# myDir = "/Users/bobmauck/Dropbox/BIG Science/MOMs/2022_Stuff" # where to open window for GUI file selection
+myDir = "/Users/bobmauck/devel/LHSP_MOM_GUI/main/Data_Files/Cut_Bird_Only" # where to open window for GUI file selection
 default_window = 5
 my_Save_Dir = "~/devel/LHSP_MOM_GUI/main/Data_Files/"  # where to put cut files
 
@@ -108,12 +109,13 @@ def mom_cut_button():
     t2.insert(tk.END, hello + "\n") # add to Text widget
 
 def mom_calc_button(multiple_files):
-    ### this is where you can get multiple files or one file; for now just get one file at a time with GUI
+    ### for now just get one file at a time with GUI; have another button for multiple files
     my_rolling_window = int(my_entries[3].get())
     my_inclusion_threshold = float(my_entries[2].get())
     
 
     if multiple_files:
+        
         pass  ## could cycle through files and rolling windows and thresholds
             ## AUTOMATE 
             # for datafile in datafiles:
@@ -133,18 +135,39 @@ def mom_calc_button(multiple_files):
         t3.insert(tk.END, "\tStrain Change: " + str(round((bird_mean - bird_baseline),1)) + "\t(N = " +str(n_points) + ")\n")
 
 def mom_calc_multiple_files():
-    pass  
+    raw_files_path = "/Users/bobmauck/devel/LHSP_MOM_GUI/main/Data_Files/Cut_Bird_Only"
+    files_to_load = os.listdir(raw_files_path)
+    files_to_load_absolute = [ os.path.join(raw_files_path,filename) for filename in files_to_load ] 
+    print(files_to_load_absolute)
+    dataframes_to_load = [ pd.read_csv(fpath, header=None, skiprows=1) for fpath in files_to_load_absolute]
+    dataframes_to_load = [ mom_format_dataframe(df) for df in dataframes_to_load]
     my_Windows = [3, 5, 7]
-    my_Thresholds = [0.01, 0.0125, 0.015, 0.0175, 0.02]
+    my_Thresholds = [0.01, 0.0125, 0.015, 0.0175, 0.02, 0.025, 0.03]
         ## could cycle through files and rolling windows and thresholds
         #       datafiles are located in: "/Users/bobmauck/devel/LHSP_MOM_GUI/main/Data_Files/Cut_Bird_Only"
+    output_df = pd.DataFrame([], columns={ "bird_mean", "bird_baseline", "n_points", "rolling_window", "my_threshold","File_name", "type_of_calc"})
+    type_of_calc = "pct_change"
+    for bird_df, bird_fname in zip(dataframes_to_load, files_to_load):
+        for my_rolling_window in my_Windows:
+            for my_inclusion_threshold in my_Thresholds:
+                print(bird_fname, my_rolling_window, my_inclusion_threshold)
+                bird_mean, bird_baseline, n_points = do_PctChg_Bird_Calcs(bird_df, bird_fname, my_rolling_window, my_inclusion_threshold, False, False)
+                output_df.loc[len(output_df.index)] = [bird_mean, bird_baseline, n_points, my_rolling_window, my_inclusion_threshold, bird_fname, type_of_calc]
+    
+    my_unique_name = " 002"
+    output_path = "/Users/bobmauck/devel/LHSP_MOM_GUI/main/Data_Files/Cut_Bird_Only" + my_unique_name
+    output_df.to_csv(output_path, sep = "\t", index=False)
+    # print(output_df)
+
+    return output_df
+
         ## AUTOMATE 
         # for datafile in datafiles:
         #   for windows in my_rolling_windows size by increment (i.e. 3-9 by 2, maybe a list with these values):
         #       for threhold in my_inclusion_thresholds by increment (i.e., 0.1, 0.15, 0.20, maybe a list with these values):
         #           get bird_df, bird_name from each datafile, send it to doPctChg
         #           bird_mean, bird_baseline, n_points = do_PctChg_Bird_Calcs(bird_df, bird_fname, my_rolling_window, my_inclusion_threshold)
-        #           ADD to dataframe: bird_mean, bird_baseline, n_points, rolling_window, my_threshold, type_of_calc (e.g., "Pct_Chg")
+        #           ADD to dataframe: bird_mean, bird_baseline, n_points, rolling_window, my_threshold,name of file, type_of_calc (e.g., "Pct_Chg")
         # when done, export dataframe holding all the data from each iteration
 
 
@@ -220,7 +243,7 @@ def mom_get_file_info(my_df):
 #                                        must have cut it first to right length
 #           my_update_screen shoudl be false if we are doing multiple birds in one batch
 # #####
-def do_PctChg_Bird_Calcs(my_df,f_name, my_window, my_threshold, my_update_screen=True):
+def do_PctChg_Bird_Calcs(my_df,f_name, my_window, my_threshold, my_update_screen = True, do_Plot = True):
 
         ## threshold to use for inclusion or exclusion from consideration between points
     mom_Threshold = my_threshold
@@ -258,7 +281,8 @@ def do_PctChg_Bird_Calcs(my_df,f_name, my_window, my_threshold, my_update_screen
     # now show focused plot and export that plot with info for later viewing
     # get the burrow number
 
-    mom_do_birdplot(bird_df, bird_plot_df, display_string, my_window, my_threshold, "pctChg")
+    if(do_Plot):
+        mom_do_birdplot(bird_df, bird_plot_df, display_string, my_window, my_threshold, "pctChg")
     
     return bird_mean, bird_baseline_mean, n_points
 
@@ -274,11 +298,11 @@ def mom_do_birdplot (bird_df, bird_plot_df, my_filename, my_window, my_threshold
     # save the plot, name assumes your original files starts wtih 3-letter burrow number
     my_label = my_entries2[0].get()
     output_filename = my_label + "_" + my_type + "_" + str(my_window) + "  win_" + str(my_threshold) + "_thr.png"
-    plt.savefig(output_filename)
+    plt.savefig(os.path.join("output_files",output_filename))
     # show the plot
     # plot_text = str(bird_mean) # + str(bird_baseline_mean)
-    plt.text(7.8, 12.5, "I am Adding Text To The Plot")
-    plt.show()
+    # plt.text(7.8, 12.5, "I am Adding Text To The Plot")
+    # plt.show()
 
 
 def mom_get_baseline(my_df, lo_point, hi_point):
