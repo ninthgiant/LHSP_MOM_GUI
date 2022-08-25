@@ -1,6 +1,7 @@
 ################################
 #
 #   MOM_Processor_v01
+#       RAM after hard reset
 #
 ###########
 
