@@ -13,7 +13,7 @@
 ########
 # import libraries, etc.
 #################################
-cd
+
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog as fd
