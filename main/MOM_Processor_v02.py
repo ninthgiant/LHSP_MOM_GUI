@@ -205,6 +205,10 @@ def mom_calc_button(multiple_files):
     t2.insert(tk.END, "\tBird baseline: " + str(round(bird_baseline,1)) + "\n")
     t2.insert(tk.END, "\tStrain Change: " + str(round((bird_mean - bird_baseline),1)) + "\t(N=" +str(n_points) + ")\n")
 
+def mom_get_characteristics():
+    Do_Multiple_Characteristics()
+
+
 def mom_calc_multiple_files():
     raw_files_path = "/Users/bobmauck/devel/LHSP_MOM_GUI/main/Data_Files/Cut_Bird_Only"
     files_to_load = os.listdir(raw_files_path)
@@ -657,9 +661,23 @@ def Do_Bird(my_DataFrame):
         birds_details.append(bird_details)
         print("Bird Mass: ")
         my_result = round(((bird_data_mean - bird_cal_mean) * cal_gradient + cal_intercept),2)
+        # my_time = (bird_data_markers["Point"]=="End"])-(bird_data_markers["Point"]=="Start"])
+        my_time = measure_start[-8:] + "," + measure_end[-8:]
+        print("times: " + my_time)
+
+        if(confirm_continue("Good measurement?")):
+            my_Eval = "G"
+        else:
+            my_Eval = "B"
+        print(my_result)
+
+        my_time = my_time + ", " + my_Eval
+        
+
         print(my_result)
         t2.insert(tk.END, "File: " + user_BURROW + "\n") # add to Text widget
         t2.insert(tk.END, "\tBird Mass: \t" + str(my_result) + "\n") # add to Text widget
+        t2.insert(tk.END, "\tTime ON:\t" + str(my_time) + "\n") # add to Text widget
         #t2.insert(1.0, "File: " + user_BURROW + "\n") # add to Text widget
         #t2.insert(1.0, "\tBird Mass: \t" + str(my_result) + "\n") # add to Text widget
 
@@ -709,6 +727,81 @@ def Do_Multiple_Birds(my_DataFrame):
         Output_MOM_Data()
 
     return birds
+
+#############################
+# Function Do_Bird_Characteristics: get an In and Out quality for bird trip - to evaluate MOM performance
+#    Choose start and stop when baseline begins/ends disturbance
+#       Data to gather - start time, start point, points between markers
+#           additional want: symmetrical, reliable
+#    RAM 78/25/22
+#    parameters: NONE 
+#    returns: NONE
+#######
+def Do_Bird_Characteristics(my_DataFrame):
+
+    bird_data_mean, bird_data_markers, bird_data_good, bird_data_axesLimits = getTracePointPair(my_DataFrame, "Duration")
+    measure_start = bird_data_markers[bird_data_markers["Point"]=="Start"].Datetime.iloc[0]
+    measure_end = bird_data_markers[bird_data_markers["Point"]=="End"].Datetime.iloc[0]
+
+    bird_details = "Duration"
+
+    if(confirm_continue("Good measurement?")):
+        my_Eval = "G"
+    else:
+        my_Eval = "B"
+    
+    my_time = measure_end[-8:] + " , " + measure_start[-8:] + my_Eval
+
+    t2.insert(tk.END, "File: " + user_BURROW + "\n") # add to Text widget
+    t2.insert(tk.END, "\ton MOM:\t" + str(my_time) + "\n") # add to Text widget
+
+#############################
+# Function Do_Multiple_Characteristics: to id mltiple birds in one file
+#    RAM 7/26/22
+#    Parameters: NONE
+#    Returns: NONE
+#    
+#######
+def Do_Multiple_Characteristics(my_DataFrame):
+    global birds
+    Set_Globals()  # reset the saved birds
+    # assumes have lists declared as global
+    # Allow the user to continue entering birds for as many times as she wants
+    while (True):
+        if(confirm_continue("Enter bird data?")):
+            Do_Bird_Characteristics(my_DataFrame)
+        else:
+            break
+
+    # Done entering bird data
+    #   Make the accumulated bird info into a clean dataframe for exporting
+    
+    # birds = pd.DataFrame({"Burrow":user_BURROW,
+    #                         "Date":data_DATE,
+    #                         "Datetime_Measure_Start":birds_datetime_starts,
+    #                         "Datetime_Measure_End":birds_datetime_ends,
+    #                         "Mean_Data_Strain":birds_data_means,
+    #                         "Mean_Calibration_Strain":birds_cal_means,
+    #                         "Details":birds_details})
+
+    # # # Convert the Datetime columns back to character strings for exporting
+    # # birds["Datetime_Measure_Start"] = birds["Datetime_Measure_Start"].dt.strftime("%Y-%m-%d %H:%M:%S")
+    # # birds["Datetime_Measure_End"] = birds["Datetime_Measure_End"].dt.strftime("%Y-%m-%d %H:%M:%S")
+
+    # # Calculate the baseline and regressed mass estimates for the birds
+    # birds["Baseline_Difference"] = abs(birds["Mean_Data_Strain"] - birds["Mean_Calibration_Strain"]) 
+    # birds["Regression_Mass"] = birds["Baseline_Difference"] * cal_gradient + cal_intercept
+
+    # print("Bird calculated masses: ")
+    # print(birds["Regression_Mass"])
+
+    # print("Bird entries complete.")
+
+    # if(confirm_continue("Export Results?")):
+    #     Output_MOM_Data()
+
+    # return birds
+
 
 ################
 # Function Output_MOM_Data to declare global variables all in one place - is this possible?
