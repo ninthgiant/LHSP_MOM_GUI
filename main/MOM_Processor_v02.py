@@ -678,6 +678,9 @@ def Do_Bird(my_DataFrame):
         t2.insert(tk.END, "File: " + user_BURROW + "\n") # add to Text widget
         t2.insert(tk.END, "\tBird Mass: \t" + str(my_result) + "\n") # add to Text widget
         t2.insert(tk.END, "\tTime ON:\t" + str(my_time) + "\n") # add to Text widget
+        t2.insert(tk.END, "\t" +str(my_result) + "," + str(my_time) + "\n") # add to Text widget
+
+
         #t2.insert(1.0, "File: " + user_BURROW + "\n") # add to Text widget
         #t2.insert(1.0, "\tBird Mass: \t" + str(my_result) + "\n") # add to Text widget
 
